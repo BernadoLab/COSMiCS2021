@@ -29,7 +29,7 @@ for k=1:numexpv
     fprintf(  'Select the folder containing the data from experiment number %d (press any key to continue)\n', k);
     pause;
 
-    folderInput = uigetdir('/home/amin/Work/Cosmics-multi/Lysozyme');
+    folderInput = uigetdir('/home/');
     foldernames{k} = folderInput;
     disp([  'Directory: ', folderInput]);
     disp(' ');
@@ -150,17 +150,6 @@ for k = 1:numexp
     end
     
 end
-% for k = 1:length(OutFilesList)
-%     basefilename = OutFilesList(k).name;
-%     foldername = foldernameslist{k};
-%     fullFileName = fullfile(foldername,basefilename);
-%     fid = fopen(fullFileName,'rt');
-%     eval(columnasVariable);
-%     fclose(fid);
-%     for i = 1:columns
-%         curvasFibrilacionInic{k,1}(:,i) = indata{i};
-%     end
-% end
 
 
 % % Check length of the curves
@@ -242,14 +231,22 @@ valoresS(:,1) = curvesFinal{1,1}(:,1);
 curvasTotales = length(curvesFinal);
 
 fprintf('\nYou added %s files\n\n', num2str(curvasTotales));
-%% Scale the two experiments
-scalefactor = zeros(ExperimentRanges(3),1);
-for i = 1:length(Intensities(1,:))
-scalefactor(i,1) = Intensities(1,i)/min(Intensities(1,:));
-Intensities(:,i) = Intensities(:,i)/scalefactor(i,1);
+% % Scale the two experiments
+scalefactor = zeros(ExperimentRanges(2),1);
+% get the lowest curve
+[M,I] = min(valoresI(1,:));
+for i = 1:length(valoresI(1,:))
+    f1 = sum(valoresI(:,I).*valoresI(:,i)./valoresE(:,I).^2);
+    f2 = sum(valoresI(:,i).^2./valoresE(:,I).^2);
+%scalefactor(i,1) = valoresI(1,i)/min(valoresI(1,:));
+    scalefactor(i,1) = f2/f1;
+% scalefactor = ones(ExperimentRanges(2),1);
+valoresI(:,i) = valoresI(:,i)/scalefactor(i,1);
+valoresE(:,i) = valoresE(:,i)/scalefactor(i,1);
 end
 scalefilename = fullfile(folderOutput, 'scale.txt');
 dlmwrite(scalefilename, scalefactor);
+
 % Plot curves in semi-logarithmic scale
 
  disp(' ');
@@ -444,8 +441,8 @@ eigenvectors(:,1) = [];
 % Plot PCA results (eigenvalues)
 
 disp(' ');
-% str = 'Do you want see results of PCA?? Y/N [Y]: ';
-% respuesta = input(str,'s');
+str = 'Do you want see results of PCA?? Y/N [Y]: ';
+respuesta = input(str,'s');
 respuesta = 'N';
 if isempty(respuesta)
     respuesta = 'y';
@@ -484,8 +481,8 @@ end
 % Select number of species
 
 % disp(' ');
-% num = input('Number of species [3]: ');
-num = 3;
+num = input('Number of species [3]: ');
+%num = 3;
 if isempty(num)
     numeroEspecies = 3;
 else
@@ -1002,8 +999,8 @@ while (continuar=='y');
         nexp = length(puntosMatrices)*numexp;
         isp = ones (numexp,numeroEspecies);
         csel = NaN (length(Intensities(1,:)),numeroEspecies);
-        %csel(1,:) = ConcConsAll(1,:)/scalefactor(1,1);
-        %csel(ExperimentRanges(2)+1,:) = ConcConsAll(ExperimentRanges(2)+1,:)/scalefactor(ExperimentRanges(2)+1,1);
+        csel(1,:) = ConcConsAll(1,:)/scalefactor(1,1);
+        csel(ExperimentRanges(2)+1,:) = ConcConsAll(ExperimentRanges(2)+1,:)/scalefactor(ExperimentRanges(2)+1,1);
         vclos1 = zeros(ExperimentRanges(3),2);
         for i = 1:ExperimentRanges(2)
             vclos1(i,1)= ConcConsAll(1,1)/scalefactor(i,1);
